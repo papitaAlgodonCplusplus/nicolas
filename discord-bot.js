@@ -1,9 +1,9 @@
 const { Client, GatewayIntentBits, ChannelType, Partials } = require('discord.js');
 const { OpenAI } = require('openai');
-const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
+const cron = require('node-cron');
 
 // Initialize Discord client
 const client = new Client({
@@ -95,7 +95,7 @@ class NicolasMoodSystem {
         }
 
         // Quick acknowledgments - very brief
-        if (msg.length < 15 && (msg.includes('yeah') || msg.includes('okay') || 
+        if (msg.length < 15 && (msg.includes('yeah') || msg.includes('okay') ||
             msg.includes('thanks') || msg.includes('cool') || msg.includes('nice'))) {
             return { type: 'casual', responseLength: 'micro' };
         }
@@ -341,11 +341,12 @@ async function chatWithNicolas(userId, message, imageDescription = null) {
         const personalityPrompt = buildPersonalityPrompt(analysis.type, analysis.responseLength, message);
 
         // Much shorter token limits for natural texting
-        let maxTokens = 25; // Default micro
+        let maxTokens = 50; // Default micro
         switch (analysis.responseLength) {
-            case 'brief': maxTokens = 40; break;
-            case 'short': maxTokens = 60; break;
-            case 'medium': maxTokens = 80; break;
+            case 'brief': maxTokens = 80; break;    // increased from 40
+            case 'short': maxTokens = 120; break;   // increased from 60
+            case 'medium': maxTokens = 150; break;  // increased from 80
+            case 'detailed': maxTokens = 200; break; // add this case
         }
 
         const response = await openai.chat.completions.create({
@@ -356,7 +357,10 @@ async function chatWithNicolas(userId, message, imageDescription = null) {
                 { role: 'user', content: finalMessage }
             ],
             max_tokens: maxTokens,
-            temperature: 0.8 // Slightly higher for more natural variation
+            temperature: 1.2,
+            stop: null, // Don't stop on specific tokens
+            presence_penalty: 0.1, // Slight penalty for repetition
+            frequency_penalty: 0.1 // Slight penalty for frequency
         });
 
         const reply = response.choices[0].message.content;
@@ -375,26 +379,26 @@ async function chatWithNicolas(userId, message, imageDescription = null) {
 // Quick hardcoded responses for very common patterns
 function getQuickResponse(message) {
     const msg = message.toLowerCase().trim();
-    
+
     // Greetings
     if (msg === 'hello cutie' || msg === 'hello cutie!') {
         return Math.random() < 0.5 ? "hey babe :)" : "salut mon amour <3";
     }
-    
+
     if (msg === 'hi' || msg === 'hey' || msg === 'hello') {
         const responses = ["hey", "salut", "hey babe", "hi :)"];
         return responses[Math.floor(Math.random() * responses.length)];
     }
-    
+
     // Simple reactions
     if (msg === 'nice' || msg === 'cool') {
         return Math.random() < 0.5 ? "right?" : ":)";
     }
-    
+
     if (msg.includes('$2') && msg.includes('subway')) {
         return "damn that's cheap!";
     }
-    
+
     return null; // Use AI for other responses
 }
 
@@ -407,7 +411,7 @@ client.once('ready', () => {
 
     const activities = [
         'missing Alex',
-        'listening to podcasts', 
+        'listening to podcasts',
         'planning weekend',
         'gaming',
         'thinking'
@@ -419,6 +423,8 @@ client.once('ready', () => {
         const newActivity = activities[Math.floor(Math.random() * activities.length)];
         client.user.setActivity(newActivity, { type: 'CUSTOM' });
     }, 30 * 60 * 1000);
+
+    scheduleRandomMessages();
 });
 
 // Message handling
@@ -435,6 +441,12 @@ client.on('messageCreate', async (message) => {
     const containsTrigger = content.toLowerCase().includes('nicolas') || content.toLowerCase().includes('fox');
 
     if (!isDM && !mentionedBot && !containsTrigger) {
+        return;
+    }
+
+    // Add this for testing (remove in production)
+    if (message.content === '!test-random' && message.author.id === RANDOM_MESSAGING_CONFIG.targetUserId) {
+        await sendRandomMessage();
         return;
     }
 
@@ -463,7 +475,7 @@ client.on('messageCreate', async (message) => {
 
         // Check for quick hardcoded responses first
         let reply = getQuickResponse(cleanContent);
-        
+
         if (!reply) {
             // Enhanced quick responses with more natural reactions
             if (cleanContent.toLowerCase().includes('pat') || cleanContent.toLowerCase().includes('pet')) {
@@ -505,6 +517,239 @@ client.on('messageCreate', async (message) => {
         });
     }
 });
+
+
+// Add this configuration near the top of your file
+const RANDOM_MESSAGING_CONFIG = {
+    targetUserId: '504734258204770305',
+    minMessagesPerDay: 2,
+    maxMessagesPerDay: 3,
+    activeHours: {
+        start: 9,  // 9 AM
+        end: 22    // 10 PM
+    },
+    // Avoid sending messages during these hours (Alex might be sleeping/working)
+    quietHours: [
+        { start: 0, end: 8 },   // Late night/early morning
+        { start: 12, end: 13 }, // Lunch break
+        { start: 17, end: 18 }  // Dinner time
+    ]
+};
+
+// Random message templates organized by type
+const RANDOM_MESSAGE_TEMPLATES = {
+    questions: [
+        "what are you up to right now?",
+        "how's your day going so far?",
+        "anything interesting happen today?",
+        "what are you thinking about?",
+        "did you eat lunch yet?",
+        "how are you feeling today, mon amour?",
+        "what's the best part of your day so far?",
+        "any plans for tonight?",
+        "what are you listening to?",
+        "how's work treating you today?"
+    ],
+
+    compliments: [
+        "just thinking about how amazing you are <3",
+        "you're so incredible, you know that?",
+        "missing your smile right now",
+        "you make everything better just by existing",
+        "feeling lucky to have you in my life",
+        "you're the best thing that ever happened to me",
+        "can't stop thinking about you, cutie",
+        "you're absolutely perfect, mon amour",
+        "your intelligence is so attractive",
+        "love how passionate you get about things"
+    ],
+
+    random_thoughts: [
+        "just heard this song that reminded me of you",
+        "saw something that made me think of us",
+        "having one of those days where I just appreciate you",
+        "been thinking about our future together",
+        "randomly remembered that time we...",
+        "just wanted to tell you I love you",
+        "wish you were here right now",
+        "thinking about planning something special for us",
+        "had a weird dream about you last night",
+        "missing our late night conversations"
+    ],
+
+    observations: [
+        "the weather is so nice today",
+        "this podcast I'm listening to is fascinating",
+        "people are weird sometimes",
+        "technology is getting crazy these days",
+        "found a new restaurant we should try",
+        "saw the funniest thing earlier",
+        "this documentary is blowing my mind",
+        "gaming session was intense today",
+        "bordeaux is beautiful this time of year",
+        "french people do the weirdest things sometimes"
+    ],
+
+    playful: [
+        "guess what I'm doing right now ;)",
+        "scale of 1-10 how much do you miss me?",
+        "bet you can't guess what I'm thinking about",
+        "should I be worried you're not texting me? :P",
+        "quick question: are you being cute right now?",
+        "confession: I'm being clingy today",
+        "plot twist: I'm actually missing you",
+        "breaking news: your boyfriend is bored",
+        "urgent: need attention from cute person",
+        "petition to get more kisses from you"
+    ],
+
+    concerns: [
+        "are you drinking enough water today?",
+        "don't forget to take breaks from work",
+        "hope you're not overworking yourself",
+        "remember to eat something good today",
+        "make sure you get some rest tonight",
+        "don't stress too much about things, ok?",
+        "take care of yourself for me",
+        "hoping your day isn't too overwhelming",
+        "sending you good vibes for whatever you're doing",
+        "just checking that you're doing alright"
+    ]
+};
+
+// Track messaging state
+let dailyMessageCount = 0;
+let lastMessageDate = new Date().toDateString();
+let scheduledMessages = [];
+
+// Function to check if current time is within active hours
+function isActiveTime() {
+    const now = new Date();
+    const hour = now.getHours();
+
+    // Check if within active hours
+    if (hour < RANDOM_MESSAGING_CONFIG.activeHours.start ||
+        hour >= RANDOM_MESSAGING_CONFIG.activeHours.end) {
+        return false;
+    }
+
+    // Check if in quiet hours
+    for (const quietPeriod of RANDOM_MESSAGING_CONFIG.quietHours) {
+        if (hour >= quietPeriod.start && hour < quietPeriod.end) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+// Function to get a random message
+function getRandomMessage() {
+    const categories = Object.keys(RANDOM_MESSAGE_TEMPLATES);
+    const randomCategory = categories[Math.floor(Math.random() * categories.length)];
+    const messages = RANDOM_MESSAGE_TEMPLATES[randomCategory];
+    const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+
+    return {
+        category: randomCategory,
+        message: randomMessage
+    };
+}
+
+// Function to send random message
+async function sendRandomMessage() {
+    try {
+        // Reset daily count if it's a new day
+        const today = new Date().toDateString();
+        if (today !== lastMessageDate) {
+            dailyMessageCount = 0;
+            lastMessageDate = today;
+        }
+
+        // Check if we've reached daily limit
+        if (dailyMessageCount >= RANDOM_MESSAGING_CONFIG.maxMessagesPerDay) {
+            console.log('Daily message limit reached');
+            return;
+        }
+
+        // Check if it's an appropriate time
+        if (!isActiveTime()) {
+            console.log('Not in active time window');
+            return;
+        }
+
+        // Get target user
+        const user = await client.users.fetch(RANDOM_MESSAGING_CONFIG.targetUserId);
+        if (!user) {
+            console.log('Target user not found');
+            return;
+        }
+
+        // Get random message
+        const randomMsg = getRandomMessage();
+
+        // Send the message
+        await user.send(randomMsg.message);
+        dailyMessageCount++;
+
+        console.log(`Sent random ${randomMsg.category} message: "${randomMsg.message}"`);
+        console.log(`Daily count: ${dailyMessageCount}/${RANDOM_MESSAGING_CONFIG.maxMessagesPerDay}`);
+
+    } catch (error) {
+        console.error('Error sending random message:', error);
+    }
+}
+
+// Function to schedule random messages for the day
+function scheduleRandomMessages() {
+    // Clear existing scheduled messages
+    scheduledMessages.forEach(timeout => clearTimeout(timeout));
+    scheduledMessages = [];
+
+    // Determine how many messages to send today
+    const messagesCount = Math.floor(Math.random() *
+        (RANDOM_MESSAGING_CONFIG.maxMessagesPerDay - RANDOM_MESSAGING_CONFIG.minMessagesPerDay + 1)) +
+        RANDOM_MESSAGING_CONFIG.minMessagesPerDay;
+
+    console.log(`Scheduling ${messagesCount} random messages for today`);
+
+    // Schedule messages at random times within active hours
+    for (let i = 0; i < messagesCount; i++) {
+        // Generate random time within active hours
+        const startHour = RANDOM_MESSAGING_CONFIG.activeHours.start;
+        const endHour = RANDOM_MESSAGING_CONFIG.activeHours.end;
+        const randomHour = Math.floor(Math.random() * (endHour - startHour)) + startHour;
+        const randomMinute = Math.floor(Math.random() * 60);
+
+        // Create date for the scheduled time
+        const scheduledTime = new Date();
+        scheduledTime.setHours(randomHour, randomMinute, 0, 0);
+
+        // If the time has already passed today, skip
+        if (scheduledTime <= new Date()) {
+            continue;
+        }
+
+        // Calculate delay
+        const delay = scheduledTime.getTime() - new Date().getTime();
+
+        // Schedule the message
+        const timeout = setTimeout(() => {
+            sendRandomMessage();
+        }, delay);
+
+        scheduledMessages.push(timeout);
+
+        console.log(`Scheduled message for ${scheduledTime.toLocaleTimeString()}`);
+    }
+}
+
+// Schedule new random messages every day at midnight
+cron.schedule('0 0 * * *', () => {
+    console.log('New day - scheduling random messages');
+    scheduleRandomMessages();
+});
+
 
 client.on('error', console.error);
 
