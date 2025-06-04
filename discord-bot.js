@@ -286,9 +286,8 @@ function addToHistory(userId, role, content) {
     const history = getUserHistory(userId);
     history.push({ role, content });
 
-    // Keep shorter history for more natural responses
-    if (history.length > 6) {
-        conversationHistory.set(userId, history.slice(-6));
+    if (history.length > 80) {
+        conversationHistory.set(userId, history.slice(80));
     }
 }
 
