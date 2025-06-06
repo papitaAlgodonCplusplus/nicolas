@@ -199,32 +199,39 @@ function addToHistory(userId, role, content) {
 // Analyze image using OpenAI Vision
 async function analyzeImage(imageUrl) {
     try {
+        console.log('Starting image analysis for:', imageUrl);
+
         const response = await openai.chat.completions.create({
-            model: "gpt-4-vision-preview",
+            model: "gpt-4o", // Updated to use gpt-4o instead of gpt-4-vision-preview
             messages: [
                 {
                     role: "user",
                     content: [
                         {
                             type: "text",
-                            text: "React to this image naturally and briefly, like a boyfriend would via text."
+                            text: "Describe this image briefly as Nicolas would react to it - natural, warm, and engaged like a boyfriend would via text. Be specific about what you see."
                         },
                         {
                             type: "image_url",
                             image_url: {
-                                url: imageUrl
+                                url: imageUrl,
+                                detail: "auto"
                             }
                         }
                     ]
                 }
             ],
-            max_tokens: 50
+            max_tokens: 100 // Increased for better descriptions
         });
 
-        return response.choices[0].message.content;
+        const result = response.choices[0].message.content;
+        console.log('Image analysis successful:', result);
+        return result;
+
     } catch (error) {
         console.error('Image analysis error:', error.message);
-        return "can't see the image rn :/";
+        console.error('Full error:', error);
+        return "I can see there's an image but having trouble analyzing it right now, the error was: " + error.message;
     }
 }
 
@@ -288,7 +295,7 @@ client.once('ready', () => {
     scheduleRandomMessages();
 });
 
-// Message handling
+
 client.on('messageCreate', async (message) => {
     console.log(`Message from ${message.author.tag}: ${message.content}`);
 
@@ -316,10 +323,13 @@ client.on('messageCreate', async (message) => {
     try {
         let imageDescription = null;
 
+        // FIXED: Check for images first and analyze them
         if (message.attachments.size > 0) {
             const attachment = message.attachments.first();
             if (attachment.contentType && attachment.contentType.startsWith('image/')) {
+                console.log('Analyzing image:', attachment.url);
                 imageDescription = await analyzeImage(attachment.url);
+                console.log('Image analysis result:', imageDescription);
             }
         }
 
@@ -328,13 +338,26 @@ client.on('messageCreate', async (message) => {
             .replace(/nicolas|fox/gi, '')
             .trim();
 
-        if (!cleanContent && imageDescription) {
-            cleanContent = "pic";
-        } else if (!cleanContent) {
-            cleanContent = "hey";
+        // FIXED: Handle the message based on whether there's an image
+        let finalMessage;
+        if (imageDescription) {
+            // If there's an image, combine the text with image description
+            if (cleanContent) {
+                finalMessage = `${cleanContent} [Image: ${imageDescription}]`;
+            } else {
+                finalMessage = `[Image: ${imageDescription}]`;
+            }
+        } else {
+            // No image, just use the cleaned content
+            if (!cleanContent) {
+                cleanContent = "hey";
+            }
+            finalMessage = cleanContent;
         }
 
-        reply = await chatWithNicolas(userId, cleanContent, imageDescription);
+        console.log('Final message to Nicolas:', finalMessage);
+
+        const reply = await chatWithNicolas(userId, finalMessage);
 
         await message.reply({
             content: reply,
@@ -349,7 +372,6 @@ client.on('messageCreate', async (message) => {
         });
     }
 });
-
 
 // Add this configuration near the top of your file
 const RANDOM_MESSAGING_CONFIG = {
