@@ -270,14 +270,14 @@ async function chatWithNicolas(userId, message, imageDescription = null) {
             temperature: 1.2,
             stop: null, // Don't stop on specific tokens
             presence_penalty: 0.1, // Slight penalty for repetition
-            frequency_penalty: 0.1 // Slight penalty for frequency
+            frequency_penalty: 0.1 // Slight penalty for frequency  
         });
 
         const reply = response.choices[0].message.content;
 
         // Add to conversation history
         addToHistory(userId, 'user', finalMessage);
-        addToHistory(userId, 'boyfriend', reply);
+        addToHistory(userId, 'assistant', reply);
 
         return reply;
     } catch (error) {
@@ -530,7 +530,7 @@ async function sendRandomMessage() {
         // Send the message
         await user.send(randomMsg.message);
         dailyMessageCount++;
-        addToHistory(RANDOM_MESSAGING_CONFIG.targetUserId, 'boyfriend', randomMsg.message);
+        addToHistory(RANDOM_MESSAGING_CONFIG.targetUserId, 'assistant', randomMsg.message);
 
         console.log(`Sent random ${randomMsg.category} message: "${randomMsg.message}"`);
         console.log(`Daily count: ${dailyMessageCount}/${RANDOM_MESSAGING_CONFIG.maxMessagesPerDay}`);
