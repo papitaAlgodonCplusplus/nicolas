@@ -282,7 +282,7 @@ async function chatWithNicolas(userId, message, imageDescription = null) {
         return reply;
     } catch (error) {
         console.error('ChatGPT Error:', error.message);
-        return "ugh tech issues :/";
+        return "ugh tech issues :/, i got... " + error.message;
     }
 }
 
@@ -290,8 +290,6 @@ async function chatWithNicolas(userId, message, imageDescription = null) {
 client.once('ready', () => {
     console.log(`Nicolas is online as ${client.user.tag}!`);
     console.log(`Connected to ${client.guilds.cache.size} servers`);
-
-    loadLifeStory();
     scheduleRandomMessages();
 });
 
