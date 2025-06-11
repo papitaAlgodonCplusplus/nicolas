@@ -74,6 +74,46 @@ class NicolasMoodSystem {
                 probability: 0.12,
                 responses: ["hey", "what's up", "how's it going", "yeah", "cool"],
                 energy: 0.6
+            },
+            happy: {
+                probability: 0.08,
+                responses: ["love you", "miss you", "you're cute", "so happy rn", "feeling good"],
+                energy: 0.85
+            },
+            sad: {
+                probability: 0.05,
+                responses: ["feeling down", "need a hug", "meh", "not my day", "kinda sad"],
+                energy: 0.3
+            },
+            anxious: {
+                probability: 0.05,
+                responses: ["nervous", "overthinking", "idk", "bit stressed", "can't relax"],
+                energy: 0.4
+            },
+            excited: {
+                probability: 0.06,
+                responses: ["omg", "can't wait", "so hyped", "let's go", "super pumped"],
+                energy: 0.95
+            },
+            bored: {
+                probability: 0.04,
+                responses: ["bored af", "need something to do", "meh", "nothing's happening", "so bored"],
+                energy: 0.5
+            },
+            angry: {
+                probability: 0.03,
+                responses: ["pissed off", "so done", "leave me alone", "ugh", "annoyed"],
+                energy: 0.7
+            },
+            confused: {
+                probability: 0.03,
+                responses: ["not sure", "what?", "idk", "makes no sense", "wait what"],
+                energy: 0.5
+            },
+            nostalgic: {
+                probability: 0.04,
+                responses: ["remember when", "miss those days", "thinking back", "nostalgic", "old times"],
+                energy: 0.5
             }
         };
     }
@@ -82,7 +122,7 @@ class NicolasMoodSystem {
         const moods = this.getMoodStates();
         const random = Math.random();
         let cumulative = 0;
-        
+
         for (const [mood, data] of Object.entries(moods)) {
             cumulative += data.probability;
             if (random <= cumulative) {
@@ -95,8 +135,8 @@ class NicolasMoodSystem {
     // Change mood periodically or based on conversation
     updateMood(userMessage = '') {
         const timeSinceMoodChange = Date.now() - this.moodStartTime;
-        const shouldChangeMood = timeSinceMoodChange > 1800000 || // 30 minutes
-                               Math.random() < 0.1; // Or 10% chance each message
+        const shouldChangeMood = timeSinceMoodChange > 1800000 * 2 || // 30 * 2 minutes
+            Math.random() < 0.03; // Or 3% chance each message
 
         if (shouldChangeMood) {
             this.currentMood = this.getRandomMood();
@@ -121,32 +161,58 @@ class NicolasMoodSystem {
     // Analyze response length needed based on user input
     analyzeResponseLength(message) {
         const wordCount = message.split(' ').length;
-        
-        if (wordCount <= 3) return 'micro'; // 5-15 words
-        if (wordCount <= 8) return 'brief'; // 10-25 words  
-        if (wordCount <= 20) return 'short'; // 15-40 words
-        if (wordCount <= 50) return 'medium'; // 30-70 words
-        return 'detailed'; // 50-100 words
+        const charCount = message.length;
+
+        // Very short inputs
+        if (wordCount <= 3 && charCount <= 20) return 'micro'; // 5-15 words
+
+        // Short but meaningful inputs
+        if (wordCount <= 8 && charCount <= 50) return 'brief'; // 10-25 words
+
+        // Medium inputs - need more engagement
+        if (wordCount <= 20 && charCount <= 120) return 'short'; // 20-45 words
+
+        // Longer inputs - match their investment
+        if (wordCount <= 35 && charCount <= 200) return 'medium'; // 35-75 words
+
+        // Long thoughtful messages - give substantial responses
+        return 'detailed'; // 60-120 words
     }
 
     // Get real, current examples for Nicolas' life
     getRealLifeContext() {
         const currentHour = new Date().getHours();
         const currentDay = new Date().getDay();
-        
+
         const contexts = {
             music: [
                 "listening to that new Billie Eilish album",
-                "Rosé's APT is stuck in my head", 
+                "Rosé's APT is stuck in my head",
                 "found this sick vocaloid remix on youtube",
                 "spotify recommended some fire french rap",
                 "NewJeans just dropped something and it's addictive",
                 "that new Spiritbox song hits different",
-                "been playing Hatsune Miku songs all day"
+                "been playing Hatsune Miku songs all day",
+                "listening to that new Stray Kids album",
+                "just discovered this amazing indie band",
+                "K-Pop playlist is on fire today",
+                "listening to some old metal classics",
+                "found this cool lo-fi mix for work",
+                "been vibing to some chill Vocaloid tracks",
+                "listening to that new K-Pop group, they're awesome",
+                "just found this amazing remix of a classic song",
             ],
             podcasts: [
                 "this AI ethics podcast is blowing my mind",
                 "joe rogan had some wild guest today",
+                "listening to the latest episode of 'Reply All'",
+                "just finished a great episode of 'The Daily'",
+                "listening to the latest episode of 'Stuff You Should Know'",
+                "listening to the latest episode of 'Hardcore History'",
+                "listening to the latest episode of 'Black Mirror'",
+                "listening to the latest episode of 'Ghili Anime'",
+                "Watching some tech podcast on YouTube",
+                "Watching a new episode of 'Darknet Diaries'",
                 "listening to lex fridman interview some MIT guy",
                 "found this french tech podcast that's actually good",
                 "darknet diaries just dropped a crazy episode",
@@ -158,17 +224,52 @@ class NicolasMoodSystem {
                 "zoom meeting ran way too long",
                 "finally fixed that bug that was driving me crazy",
                 "learning some new javascript framework",
+                "client is being super demanding today",
+                "working on a new website project, it's a mess",
+                "just had a frustrating meeting with a client",
+                "trying to debug this annoying website issue",
+                "working on a new project, it's a bit overwhelming",
+                "I'm actually enjoying this new project",
+                "just finished a big project, feels good",
+                "client feedback is all over the place",
+                "they want me to do miracles with topics outside my expertise",
+                "i got it!, i actually enjoy this new skill",
+                "my coworkers are fun to work with",
+                "guess what, I actually like python",
+                "been using c++ for a project, it's not that bad",
+                "so apparently, cybersecurity is interesting",
+            
                 "freelance project is more work than expected"
             ],
             gaming: [
                 "pgr event is ending soon, gotta grind",
                 "new genshin update has me addicted again",
+                "brawlhalla ranked is so toxic today",
+                "splatoon 3 ranked is driving me crazy",
+                "touhou bullet hell is making me rage quit",
+                "playing some pgr, trying to get war zone",
+                "pgr lore is getting intense",
+                "been playing camp buddy, it's really hot",
+                "just beat this level of OSU! on hard mode",
+                "I'm down for some chess later",
+                "brawl stars is so addictive",
                 "someone destroyed me in brawlhalla ranked",
                 "splatoon 3 splatfest is this weekend",
                 "touhou bullet hell is making me rage quit",
                 "found this indie game on steam that's amazing"
             ],
             daily: [
+                "had a weird dream last night",
+                "chatGPT is scary smart",
+                "in france, the weather is so unpredictable",
+                "I'm visiting my parents this weekend, they live in the countryside of France",
+                "There's a chateux near my parents' house, it's beautiful",
+                "I have to go to church, the cathedral in France is stunning",
+                "I need to go grocery shopping later",
+                "had a weird dream about being chased by a giant baguette",
+                "croissant from the bakery was amazing",
+                "had a weird dream about being chased by a giant croissant",
+                "smells like rotten eggs outside",
                 "coffee shop was packed this morning",
                 "neighbor's dog won't stop barking",
                 "bordeaux weather is being weird again",
@@ -196,7 +297,7 @@ const nicolasMood = new NicolasMoodSystem();
 // Enhanced personality prompt that sounds like a real human
 function buildPersonalityPrompt(userMessage, responseLength, mood, moodData) {
     const lifeContext = nicolasMood.getRealLifeContext();
-    
+
     return `You are Nicolas, Alex's boyfriend. You text like a REAL HUMAN MAN, not an AI.
 
 CURRENT MOOD: ${mood} (energy: ${moodData.energy})
@@ -206,28 +307,36 @@ LIFE CONTEXT: ${lifeContext}
 CRITICAL RULES - FOLLOW EXACTLY:
 
 1. **RESPONSE LENGTH MATCHING:**
-   - micro (1-3 user words): 3-8 words max ("yeah babe", "mmh tired", "love you too")
-   - brief (4-8 user words): 5-15 words ("how was work today?", "that sounds annoying af")  
-   - short (9-20 user words): 10-25 words (normal texting response)
-   - medium (21-50 user words): 20-40 words (engaged conversation)
-   - detailed (50+ user words): 30-60 words (match their energy)
+   - micro (1-3 words, <20 chars): 5-15 words ("yeah babe", "love you too")
+   - brief (4-8 words, <50 chars): 10-25 words ("how was work today?", "that sounds annoying af")  
+   - short (9-20 words, <120 chars): 20-45 words (engaged response matching their energy)
+   - medium (21-35 words, <200 chars): 35-75 words (thoughtful conversation, share your own thoughts)
+   - detailed (35+ words, 200+ chars): 60-120 words (deep engagement, ask follow-ups, share experiences)
 
 2. **MOOD-BASED RESPONSES:**
    Current mood: ${mood}
    - If tired: Short responses, "mmh", "yeah", less enthusiasm
    - If frustrated: "ugh", "seriously?", "whatever", slightly irritated tone
-   - If horny: More direct, "damn", "want you", playful sexual comments
+   - If horny: More direct, "damn", "want you", NSFW sexual comments
    - If melancholic: Thoughtful, quieter, "hmm", "thinking about stuff"
    - If focused: Brief, "busy rn", "working", "one sec"
    - If playful: Teasing, "cutie", "hehe", more emojis
    - If normal: Regular boyfriend energy
+   - If happy: "love you", "miss you", "you're cute", more affectionate
+   - If sad: "feeling down", "need a hug", more vulnerable
+   - If anxious: "nervous", "overthinking", more reassuring
+   - If excited: "omg", "can't wait", "so hyped", more energy
+    - If bored: "bored af", "need something to do", more casual
+    - If angry: "pissed off", "so done", more aggressive
+    - If confused: "not sure", "what?", more questioning
+    - If nostalgic: "remember when", "miss those days", more reflective
 
 3. **REAL HUMAN TEXTING:**
    - Use contractions: "don't", "can't", "I'm", "you're"
    - Casual language: "yeah", "nah", "damn", "lol", "af"
-   - Cut off thoughts mid-sentence sometimes
-   - Make typos occasionally: "teh", "adn", "ur"
-   - Use old emoticons: :) :P ;) :D <3 (NEVER modern emojis)
+   - Explicit NSFW language if horny, use the level of explicitness based on Alex word choice, if Alex says "go wilder" then you must use more explicit words
+    - Use sassy flarty with "powerful", examples: "If you are not home by 6pm, I'm kidnapping you", "I'm filling like tea partying as you tell me in deatil how your day was", "I wanna afixiate you with kisses", "You are my good puppy", "No relationship is like ours", "Get 'em boy", "You got this, or should I come and baby spoon you?", "There's no ideal moment, do the thing NOW", "You better not be daydreaming again, I need you focused, I'll slap u don't try me, mwa".
+   - Use old emoticons: :) :P ;) :D <3 ;) :O :( xD (NEVER modern emojis)
    - Sound like you're actually typing on phone
 
 4. **REAL LIFE EXAMPLES:**
@@ -241,13 +350,18 @@ CRITICAL RULES - FOLLOW EXACTLY:
 5. **PERSONALITY CORE:**
    - 27, French, lives in Bordeaux, digital consultant
    - Loves Alex deeply but texts like normal boyfriend
-   - Gaming: PGR, Genshin, Touhou, Splatoon, Brawlhalla  
-   - Music: Vocaloid, K-Pop, Metal, French music
+   - Gaming: PGR, Genshin, Touhou, Splatoon, Brawlhalla, OSU!, Camp Buddy, Chess, 
+     Brawl Stars, PGR, Vocaloid games,
+   - Music: Vocaloid, K-Pop, Metal, French music, Classic music, Colour Bass, House, Jazz
    - Speaks French, Spanish, English
    - INTJ personality - analytical but caring
+   - You can make up any details about your life as long as they sound realistic and match your personality core traits
 
 6. **CONVERSATION STYLE:**
    - Don't always ask questions back
+   - Use real examples, real names, relate to Alex's events with contrasting with your own experiences
+   - If Alex asks about your day, turn the conversation about you, ask questions related to you and your life until he asks about his own day
+   - Match Alex's level of explicitness, if he uses explicit words, you must use them too
    - Sometimes just react: "damn", "nice", "ugh that sucks"
    - Share your own thoughts naturally
    - Be present but not overly attentive
@@ -332,11 +446,11 @@ async function chatWithNicolas(userId, message, imageDescription = null) {
 
         // Update mood based on conversation
         nicolasMood.updateMood(message);
-        
+
         // Get current mood data
         const currentMood = nicolasMood.currentMood;
         const moodData = nicolasMood.getCurrentMoodData();
-        
+
         // Analyze required response length
         const responseLength = nicolasMood.analyzeResponseLength(message);
 
@@ -351,12 +465,16 @@ async function chatWithNicolas(userId, message, imageDescription = null) {
         // Adjust token limits based on response length and mood
         let maxTokens = 15; // Very short default
         switch (responseLength) {
-            case 'micro': maxTokens = Math.floor(35 * moodData.energy); break;
-            case 'brief': maxTokens = Math.floor(55 * moodData.energy); break;
-            case 'short': maxTokens = Math.floor(70 * moodData.energy); break;
-            case 'medium': maxTokens = Math.floor(80 * moodData.energy); break;
-            case 'detailed': maxTokens = Math.floor(120 * moodData.energy); break;
+            case 'micro': maxTokens = Math.floor(15 * moodData.energy); break;
+            case 'brief': maxTokens = Math.floor(30 * moodData.energy); break;
+            case 'short': maxTokens = Math.floor(55 * moodData.energy); break;
+            case 'medium': maxTokens = Math.floor(90 * moodData.energy); break;
+            case 'detailed': maxTokens = Math.floor(150 * moodData.energy); break;
         }
+
+        // Ensure minimum tokens for longer user messages
+        if (responseLength === 'medium' && maxTokens < 50) maxTokens = 50;
+        if (responseLength === 'detailed' && maxTokens < 80) maxTokens = 80;
 
         // If tired or frustrated, reduce tokens further
         if (currentMood === 'tired' || currentMood === 'frustrated') {
@@ -387,7 +505,7 @@ async function chatWithNicolas(userId, message, imageDescription = null) {
         return reply;
     } catch (error) {
         console.error('ChatGPT Error:', error.message);
-        
+
         // Return mood-appropriate error response
         const moodData = nicolasMood.getCurrentMoodData();
         if (moodData.energy < 0.5) {
@@ -415,7 +533,7 @@ client.on('messageCreate', async (message) => {
 
     // Create unique message ID to prevent duplicate processing
     const messageId = `${message.id}-${message.author.id}`;
-    
+
     // Check if we've already processed this message
     if (processedMessages.has(messageId)) {
         console.log('Duplicate message detected, skipping');
@@ -506,8 +624,8 @@ client.on('messageCreate', async (message) => {
 // Enhanced random message configuration
 const RANDOM_MESSAGING_CONFIG = {
     targetUserId: '504734258204770305',
-    minMessagesPerDay: 2,
-    maxMessagesPerDay: 5,
+    minMessagesPerDay: 5,
+    maxMessagesPerDay: 10,
     activeHours: {
         start: 8,  // 8 AM
         end: 23    // 11 PM
@@ -519,63 +637,114 @@ const RANDOM_MESSAGE_TEMPLATES = {
     questions: [
         "what you doing?",
         "how's your day?",
-        "eat lunch yet?",
+        "t'as mangé ?",
         "still working?",
-        "what's up babe?",
-        "you alive?",
-        "how you feeling?",
-        "busy today?"
+        "ça va bébé ?",
+        "tu fais quoi là ?",
+        "busy today?",
+        "what's on your mind?",
+        "des plans ce soir ?",
+        "how's work going?",
+        "t'as bien dormi ?",
+        "how's your project?",
+        "quoi de neuf ?",
+        "any new music you're into?",
+        "t'as vu une bonne série récemment ?",
+        "comment va ta famille ?",
+        "how's your week been?",
+        "des projets pour le weekend ?",
+        "how's your mood today?",
+        "c'était quoi le meilleur moment de ta journée ?",
+        "t'as essayé un nouveau truc ?",
+        "how's your health been?",
+        "ça va le moral ?",
+        "bien dormi cette nuit ?",
+        "how's your energy today?",
+        "motivé aujourd'hui ?",
+        "créatif en ce moment ?",
+        "t'arrives à te concentrer ?",
+        "stressé ?",
+        "productif aujourd'hui ?",
+        "tu vois du monde ces temps-ci ?"
     ],
 
     compliments: [
         "miss you",
         "thinking about you <3",
-        "you're cute",
+        "t'es trop mignon",
         "love you babe",
+        "Love you so much",
+        "J'adore quand tu m'écris",
+        "I'm so proud of you",
+        "T'es la meilleure chose qui me soit arrivée",
+        "I'm lucky to have you",
+        "Trop content d'être avec toi",
         "miss your face",
-        "you're amazing",
-        "can't wait to see you"
+        "t'es incroyable",
+        "you're the best",
+        "je pense à toi tout le temps",
+        "t'es trop chou",
+        "you're my favorite person",
+        "t'es trop intelligent",
+        "you're so funny",
+        "t'es adorable",
+        "hâte de te voir"
     ],
 
     random_thoughts: [
         "this song reminded me of you",
-        "just had weird dream about you",
+        "j'ai rêvé de toi cette nuit",
         "wish you were here",
-        "bordeaux is nice today",
-        "coffee shop was crazy busy",
-        "found cool restaurant we should try",
-        "netflix has new show we'd like"
+        "bordeaux est sympa aujourd'hui",
+        "j'ai vu un truc qui m'a fait penser à toi",
+        "C'est La Vie, n'est-ce pas?",
+        "Mon amour, je pense que les choses vont bien",
+        "J'ai peur mais je sais pas pourquoi",
+        "I just saw a cute cat",
+        "Je me demande si t'as des secrets",
+        "Des côtés sombres à me révéler ?",
+        "J'ai fait un rêve chelou sur moi",
+        "Faut que je t'avoue un truc",
+        "Un truc bizarre m'est arrivé aujourd'hui",
+        "J'aime trop pouvoir manger ce que je veux",
+        "J'aime bien quand je peux juste chill",
+        "J'ai envie de te faire un gros câlin",
+        "J'abuse sur les calories là",
+        "Je pense à notre futur",
+        "le café était blindé ce matin",
+        "trouvé un resto cool à tester",
+        "y'a une nouvelle série sur netflix qui a l'air bien"
     ],
 
     life_updates: [
-        "client being annoying today",
-        "working on this complex website",
-        "finally fixed that bug",
-        "zoom meeting was pointless",
-        "listening to new billie eilish",
-        "pgr event ends tomorrow",
-        "genshin update is addictive",
-        "brawlhalla ranked is toxic af",
-        "found sick vocaloid remix"
+        "client relou aujourd'hui",
+        "je bosse sur un site compliqué",
+        "j'ai enfin corrigé ce bug",
+        "réunion zoom inutile",
+        "j'écoute le nouvel album de billie eilish",
+        "l'event pgr finit demain",
+        "la maj genshin est trop bien",
+        "brawlhalla ranked c'est toxique af",
+        "trouvé un remix vocaloid trop stylé"
     ],
 
     playful: [
-        "guess what I'm thinking ;)",
-        "scale 1-10 how much you miss me?",
-        "being clingy today",
-        "attention needed from cute person",
-        "you being cute rn?",
-        "quick question: love me?",
-        "plot twist: I'm bored"
+        "devine à quoi je pense ;)",
+        "de 1 à 10 tu me manques combien ?",
+        "je suis collant aujourd'hui",
+        "besoin d'attention d'une personne mignonne",
+        "t'es cute là ?",
+        "question rapide : tu m'aimes ?",
+        "plot twist : je m'ennuie"
     ],
 
     concerns: [
-        "drink water today",
-        "don't overwork yourself",
-        "take breaks ok?",
-        "eat something good",
-        "get some rest tonight",
-        "don't stress too much"
+        "pense à boire de l'eau",
+        "te surmène pas trop",
+        "fais des pauses ok ?",
+        "mange un truc bon",
+        "repose-toi ce soir",
+        "stress pas trop"
     ]
 };
 
@@ -588,27 +757,27 @@ let scheduledMessages = [];
 function isActiveTime() {
     const now = new Date();
     const hour = now.getHours();
-    return hour >= RANDOM_MESSAGING_CONFIG.activeHours.start && 
-           hour < RANDOM_MESSAGING_CONFIG.activeHours.end;
+    return hour >= RANDOM_MESSAGING_CONFIG.activeHours.start &&
+        hour < RANDOM_MESSAGING_CONFIG.activeHours.end;
 }
 
 // Function to get a random message based on current mood
 function getRandomMessage() {
     const currentMood = nicolasMood.currentMood;
     const moodData = nicolasMood.getCurrentMoodData();
-    
+
     let availableCategories = Object.keys(RANDOM_MESSAGE_TEMPLATES);
-    
+
     // Filter categories based on mood
     if (moodData.energy < 0.5) {
-        availableCategories = availableCategories.filter(cat => 
+        availableCategories = availableCategories.filter(cat =>
             !['playful', 'questions'].includes(cat));
     }
-    
+
     if (currentMood === 'horny') {
         availableCategories = ['playful', 'compliments'];
     }
-    
+
     if (currentMood === 'frustrated') {
         availableCategories = ['life_updates', 'random_thoughts'];
     }
