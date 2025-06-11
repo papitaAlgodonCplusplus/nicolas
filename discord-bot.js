@@ -238,7 +238,7 @@ class NicolasMoodSystem {
                 "guess what, I actually like python",
                 "been using c++ for a project, it's not that bad",
                 "so apparently, cybersecurity is interesting",
-            
+
                 "freelance project is more work than expected"
             ],
             gaming: [
@@ -396,8 +396,8 @@ function addToHistory(userId, role, content) {
     const history = getUserHistory(userId);
     history.push({ role, content });
 
-    if (history.length > 20) { // Shorter history for more natural responses
-        conversationHistory.set(userId, history.slice(-15));
+    if (history.length > 60) { // Shorter history for more natural responses
+        conversationHistory.set(userId, history.slice(-55));
     }
 }
 
@@ -465,12 +465,14 @@ async function chatWithNicolas(userId, message, imageDescription = null) {
         // Adjust token limits based on response length and mood
         let maxTokens = 15; // Very short default
         switch (responseLength) {
-            case 'micro': maxTokens = Math.floor(15 * moodData.energy); break;
-            case 'brief': maxTokens = Math.floor(30 * moodData.energy); break;
-            case 'short': maxTokens = Math.floor(55 * moodData.energy); break;
-            case 'medium': maxTokens = Math.floor(90 * moodData.energy); break;
-            case 'detailed': maxTokens = Math.floor(150 * moodData.energy); break;
+            case 'micro': maxTokens = Math.max(20, Math.floor(25 * moodData.energy)); break;
+            case 'brief': maxTokens = Math.max(35, Math.floor(45 * moodData.energy)); break;
+            case 'short': maxTokens = Math.max(50, Math.floor(75 * moodData.energy)); break;
+            case 'medium': maxTokens = Math.max(80, Math.floor(120 * moodData.energy)); break;
+            case 'detailed': maxTokens = Math.max(120, Math.floor(200 * moodData.energy)); break;
         }
+
+        maxTokens += 15; // Safety buffer to prevent mid-sentence cuts
 
         // Ensure minimum tokens for longer user messages
         if (responseLength === 'medium' && maxTokens < 50) maxTokens = 50;
@@ -484,16 +486,17 @@ async function chatWithNicolas(userId, message, imageDescription = null) {
         console.log(`Mood: ${currentMood}, Response Length: ${responseLength}, Max Tokens: ${maxTokens}`);
 
         const response = await openai.chat.completions.create({
-            model: 'gpt-4o-mini',
+            model: 'gpt-4o',
             messages: [
                 { role: 'system', content: personalityPrompt },
-                ...history.slice(-6), // Only use recent history
+                ...history.slice(-100), // Only use recent history
                 { role: 'user', content: finalMessage }
             ],
             max_tokens: maxTokens,
             temperature: 1.3, // Higher for more natural variation
             presence_penalty: 0.2,
-            frequency_penalty: 0.3
+            frequency_penalty: 0.3,
+            stop: ["\n\n", "---"] // Stop on double newlines but allow sentence completion
         });
 
         const reply = response.choices[0].message.content.trim();
