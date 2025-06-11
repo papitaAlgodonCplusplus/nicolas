@@ -351,11 +351,11 @@ async function chatWithNicolas(userId, message, imageDescription = null) {
         // Adjust token limits based on response length and mood
         let maxTokens = 15; // Very short default
         switch (responseLength) {
-            case 'micro': maxTokens = Math.floor(15 * moodData.energy); break;
-            case 'brief': maxTokens = Math.floor(25 * moodData.energy); break;
-            case 'short': maxTokens = Math.floor(40 * moodData.energy); break;
-            case 'medium': maxTokens = Math.floor(60 * moodData.energy); break;
-            case 'detailed': maxTokens = Math.floor(80 * moodData.energy); break;
+            case 'micro': maxTokens = Math.floor(35 * moodData.energy); break;
+            case 'brief': maxTokens = Math.floor(55 * moodData.energy); break;
+            case 'short': maxTokens = Math.floor(70 * moodData.energy); break;
+            case 'medium': maxTokens = Math.floor(80 * moodData.energy); break;
+            case 'detailed': maxTokens = Math.floor(120 * moodData.energy); break;
         }
 
         // If tired or frustrated, reduce tokens further
