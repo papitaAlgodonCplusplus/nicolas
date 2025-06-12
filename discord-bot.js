@@ -489,14 +489,14 @@ async function chatWithNicolas(userId, message, imageDescription = null) {
             model: 'gpt-4o',
             messages: [
                 { role: 'system', content: personalityPrompt },
-                ...history.slice(-100), // Only use recent history
+                ...history.slice(-30), // Only use recent history
                 { role: 'user', content: finalMessage }
             ],
             max_tokens: maxTokens,
-            temperature: 0.9, // Higher for more natural variation
-            presence_penalty: 0.6, // Encourage new topics
-            frequency_penalty: 0.5, // Reduce repetition
-            stop: ["\n\n", "---"] // Stop on double newlines but allow sentence completion
+            temperature: 1.1, // Higher for more natural variation
+            presence_penalty: 0.1, // Encourage new topics
+            frequency_penalty: 0.1, // Reduce repetition
+            stop: ["\n\n", "Alex:", "Nicolas:"] // Stop on double newlines but allow sentence completion
         });
 
         const reply = response.choices[0].message.content.trim();
