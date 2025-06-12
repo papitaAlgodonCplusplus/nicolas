@@ -480,7 +480,7 @@ async function chatWithNicolas(userId, message, imageDescription = null) {
 
         // If tired or frustrated, reduce tokens further
         if (currentMood === 'tired' || currentMood === 'frustrated') {
-            maxTokens = Math.floor(maxTokens * 0.6);
+            maxTokens = Math.floor(maxTokens * 0.7);
         }
 
         console.log(`Mood: ${currentMood}, Response Length: ${responseLength}, Max Tokens: ${maxTokens}`);
@@ -493,9 +493,9 @@ async function chatWithNicolas(userId, message, imageDescription = null) {
                 { role: 'user', content: finalMessage }
             ],
             max_tokens: maxTokens,
-            temperature: 1.3, // Higher for more natural variation
-            presence_penalty: 0.2,
-            frequency_penalty: 0.3,
+            temperature: 0.9, // Higher for more natural variation
+            presence_penalty: 0.6, // Encourage new topics
+            frequency_penalty: 0.5, // Reduce repetition
             stop: ["\n\n", "---"] // Stop on double newlines but allow sentence completion
         });
 
