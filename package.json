@@ -1,35 +1,29 @@
 {
   "name": "nicolas-discord-bot",
   "version": "1.0.0",
-  "description": "Nicolas - Digital Fox Boyfriend Discord Bot",
-  "main": "discord-bot.js",
+  "description": "Bilingual Discord bot (French/English) with conversation memory and user context",
+  "main": "nicolas-bot.js",
   "scripts": {
-    "start": "node discord-bot.js",
-    "dev": "nodemon discord-bot.js"
+    "start": "node nicolas-bot.js",
+    "dev": "nodemon nicolas-bot.js"
   },
   "keywords": [
     "discord",
     "bot",
-    "ai",
-    "fox",
-    "assistant",
-    "chatgpt",
-    "tts"
+    "chatbot",
+    "openai",
+    "bilingual",
+    "french",
+    "english"
   ],
-  "author": "Alex",
+  "author": "",
   "license": "MIT",
   "dependencies": {
     "discord.js": "^14.14.1",
-    "openai": "^5.0.1",
-    "axios": "^1.6.2",
-    "dotenv": "^16.3.1",
-    "form-data": "^4.0.2",
-    "node-cron": "^3.0.3"
+    "openai": "^4.28.0",
+    "dotenv": "^16.4.5"
   },
   "devDependencies": {
-    "nodemon": "^3.0.2"
-  },
-  "engines": {
-    "node": ">=16.0.0"
+    "nodemon": "^3.1.0"
   }
 }
