@@ -1,0 +1,82 @@
+{
+  "tacos6189": {
+    "userId": "tacos6189",
+    "username": "Alex",
+    "personalInfo": {
+      "name": "Alex",
+      "age": 22,
+      "profession": "Software Developer",
+      "location": "San José, Costa Rica",
+      "timezone": "UTC-6",
+      "languages": ["English", "French"],
+      "nativeLanguage": "Spanish"
+    },
+    "interests": {
+      "likes": [
+        "Programming (Python, JavaScript, TypeScript)",
+        "Video games (Punishing Gray Raven, chess, vrchat, touhou project)",
+        "Deep learning, Machine learning, Data Science",
+        "Alice in Borderland, Squid Game, Black Mirror, Zootopia", 
+        "Symphonic orchestral music",
+        "Le monde a l'envers, humour noir"
+      ],
+      "dislikes": [
+        "Drunk people",
+        "Hospitals",
+        "Emojis"
+      ],
+      "hobbies": [
+        "Building side projects",
+        "Gaming on weekends",
+        "Dark humor / jokes",
+        "e621, r34"
+      ]
+    },
+    "professional": {
+      "title": "Junior Software and PBI Developer",
+      "company": "Intel CR",
+      "experience": "6 months",
+      "skills": ["Dotnet", "Node.js", "Python", "PBI", "SQL"],
+      "currentProjects": [
+        "Building a Discord bot",
+        "Agronomic IoT project",
+        "System Utilization Monitor"
+      ],
+      "careerGoals": "Research & Development position"
+    },
+    "personality": {
+      "traits": [
+        "Sassy, explicit, direct, adaptable",
+        "Problem solver",
+        "Doesn't spend money unless really worth it"
+      ],
+      "communicationStyle": "Prefers clear, concise communication with occasional dark humor",
+      "helpfulInfo": "Appreciates technical depth but also enjoys casual conversation"
+    },
+    "history": {
+      "background": "Studied Computer Science at UCR, graduated in 2025. Started as a junior developer and worked way up. Originally from Carbonal, moved to Calle Blancos for studies in 2021.",
+      "significantEvents": [
+        "First hetero relationship at 18, lasted 6 months, second homo relationship at 20, lasted 8 months",
+        "Joined a Startup in 2024, lasted 5 months"
+      ],
+      "currentSituation": "Working in site 4 days a week, prefers the flexibility. Looking to learn more about AI and integrate it into projects."
+    },
+    "preferences": {
+      "preferredLanguage": "french",
+      "conversationStyle": "Mix of casual and technical",
+      "responseLength": "Adapt to the topic, if it's profound or discussion, long, if it's causal or consise questions or remarks, short",
+      "humor": "Enjoys adult humor"
+    },
+    "dailyRoutine": {
+      "morning": "Wake up at 6am, arrives at Intel at 7, goes back home at 5, sometimes goes to uni when requiered",
+      "workHours": "7am-5pm (flexible)",
+      "evening": "Coffee, game or code on side projects, asmr and gooning before bed",
+      "weekend": "Sleep in, work on personal projects, hang out in vrchat"
+    },
+    "topics": [],
+    "firstSeen": "2025-01-15T10:30:00.000Z",
+    "lastSeen": "2025-01-20T18:45:00.000Z",
+    "messageCount": 0,
+    "lastLanguageUsed": "french"
+  }
+}
